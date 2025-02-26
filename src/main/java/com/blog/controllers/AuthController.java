@@ -23,58 +23,51 @@ import com.blog.service.UserService;
 @RestController
 @RequestMapping("api/auth")
 public class AuthController {
-	
+
 	@Autowired
 	private JwtTokenHelper jwtTokenHelper;
-	
+
 	@Autowired
 	private UserDetailsService userDetailsService;
-	
+
 	@Autowired
 	private AuthenticationManager authenticationManager;
-	
+
 	@Autowired
 	private UserService userService;
 
 	@PostMapping("/login")
-	public ResponseEntity<JwtAuthResponse> createToken(
-			@RequestBody JwtAuthRequest request
-			) throws Exception
-	{
+	public ResponseEntity<JwtAuthResponse> createToken(@RequestBody JwtAuthRequest request) throws Exception {
 		this.authenticate(request.getUsername(), request.getPassword());
-		
+
 		UserDetails userDetails = this.userDetailsService.loadUserByUsername(request.getUsername());
 		String token = this.jwtTokenHelper.generateToken(userDetails);
-		
-		// ab is token ko bhejna h
+
+		// send token
 		JwtAuthResponse response = new JwtAuthResponse();
 		response.setToken(token);
 		return new ResponseEntity<JwtAuthResponse>(response, HttpStatus.OK);
 	}
 
 	private void authenticate(String username, String password) throws Exception {
-		   
-		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
-		
+
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,
+				password);
+
 		try {
 			this.authenticationManager.authenticate(authenticationToken);
-		}catch(BadCredentialsException e) {
+		} catch (BadCredentialsException e) {
 			System.out.println("Invalid Details !!");
 			throw new ApiException("Invalid username or password !!");
 		}
 	}
-	
+
 	// register new user api
-	
+
 	@PostMapping("/register")
-	public ResponseEntity<UserDto> registerUser(@RequestBody UserDto  userDto)
-	{
+	public ResponseEntity<UserDto> registerUser(@RequestBody UserDto userDto) {
 		UserDto registeredUser = this.userService.registerNewUser(userDto);
 		return new ResponseEntity<UserDto>(registeredUser, HttpStatus.OK);
 	}
-	
-	
-	
-	
 
 }
